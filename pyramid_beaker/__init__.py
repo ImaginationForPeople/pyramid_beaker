@@ -7,6 +7,8 @@ from beaker.util import coerce_session_params
 
 from pyramid.interfaces import ISession
 from pyramid.settings import asbool
+from pyramid.util import string_types
+from pyramid.path import DottedNameResolver
 from zope.interface import implementer
 
 from binascii import hexlify
@@ -22,6 +24,11 @@ def BeakerSessionFactoryConfig(**options):
         _constant_csrf_token = _options.pop('constant_csrf_token', False)
 
         def __init__(self, request):
+            session_classname = self._options.get("session_class", None)
+            if isinstance(session_classname, string_types):
+                r = DottedNameResolver()
+                session_cls = r.resolve(session_classname)
+                self._options['session_class'] = session_cls
             SessionObject.__init__(self, request.environ, **self._options)
             def session_callback(request, response):
                 exception = getattr(request, 'exception', None)
