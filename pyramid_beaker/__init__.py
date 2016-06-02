@@ -96,6 +96,9 @@ def BeakerSessionFactoryConfig(**options):
                 token = self.new_csrf_token()
             return token
 
+        def elevate_privilege(self, elevated=True):
+            self._session().elevate_privilege(elevated)
+
     return implementer(ISession)(PyramidBeakerSessionObject)
 
 
