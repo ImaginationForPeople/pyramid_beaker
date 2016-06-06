@@ -104,7 +104,9 @@ def BeakerSessionFactoryConfig(**options):
             return token
 
         def elevate_privilege(self, elevated=True):
-            self._session().elevate_privilege(elevated)
+            session = self._session()
+            if getattr(session, 'elevate_privilege', None):
+                session.elevate_privilege(elevated)
 
     return implementer(ISession)(PyramidBeakerSessionObject)
 
