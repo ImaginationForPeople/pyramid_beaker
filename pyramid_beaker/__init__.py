@@ -1,4 +1,5 @@
 import os
+import time
 
 from beaker import cache
 from beaker.session import SessionObject
@@ -107,6 +108,24 @@ def BeakerSessionFactoryConfig(**options):
             session = self._session()
             if getattr(session, 'elevate_privilege', None):
                 session.elevate_privilege(elevated)
+
+        def persist(self):
+            """Persist the session to the storage
+
+            Always saves the whole session if save or delete have been called.
+            If they haven't:
+            - If autosave is set to true, saves regardless.
+            - If save_accessed_time is set to true or unset, only saves the
+              updated access time, and only if the time delta is > 30 seconds.
+            - If save_accessed_time is set to false, doesn't save anything.
+
+            """
+            if self.__dict__['_params'].get('auto') or self.dirty():
+                self._session().save()
+            elif self.__dict__['_params'].get('save_accessed_time', True):
+                last_access_time = self.get('_accessed_time', 0)
+                if time.time() - last_access_time > 30:
+                    self._session().save(accessed_only=True)
 
     return implementer(ISession)(PyramidBeakerSessionObject)
 
